@@ -1,4 +1,6 @@
 *~
-*.desktop
-auto-save-list/
+*.desktop*
 .session
+auto-save-list/
+elpa/
+server/

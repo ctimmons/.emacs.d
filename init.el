@@ -1,3 +1,13 @@
+;;;;;;;;;;;;;;;;;
+;;;; Imports ;;;;
+;;;;;;;;;;;;;;;;;
+
+(require 'package)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Miscellaneous settings ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (setq show-paren-delay 0)
 (show-paren-mode t)
 (setq show-paren-style 'parenthesis)
@@ -5,51 +15,17 @@
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
 (setq line-number-mode t)
+(global-linum-mode 1)
 
 (global-font-lock-mode t)
-
 (desktop-save-mode 1)
 
-;;; Libraries that have no dependencies.
-;;; Some of these are base dependencies for
-;;; packages that are loaded later in this script.
-
-(load "~/.emacs.d/htmlize/htmlize.el")
-(setq htmlize-output-type 'inline-css)
-
-(load "~/.emacs.d/prop-menu/prop-menu.el")
-
-;;; Idris support (depends on prop-menu.el).
-
-(add-to-list 'load-path "~/.emacs.d/idris-mode")
-(load "~/.emacs.d/idris-mode/idris-mode.el")
-(require 'idris-mode)
-
-;(global-set-key (kbd "<C-tab>") 'next-buffer)
-;(global-set-key (kbd "<C-S-tab>") 'previous-buffer)
-
-;;; Steve Yegge's suggestions from his blog article at
-;;; https://sites.google.com/site/steveyegge2/effective-emacs
-
-; Use C-x C-m instead of M-x.
-;(global-set-key "\C-x\C-m" 'execute-extended-command)
-;(global-set-key "\C-c\C-m" 'execute-extended-command)
-
-; Use these instead of reaching for the backspace key.
-;(global-set-key "\C-w" 'backward-kill-word)
-;(global-set-key "\C-x\C-k" 'kill-region)
-;(global-set-key "\C-c\C-k" 'kill-region)
+(setq inhibit-startup-message t
+      inhibit-startup-echo-area-message t)
 
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-
-;;; End of Steve Yegge's suggestions.
-
-(global-linum-mode 1)
-
-(setq inhibit-startup-message t
-      inhibit-startup-echo-area-message t)
 
 (defun maximize-frame ()
   "Maximizes the active frame in Windows"
@@ -60,4 +36,56 @@
     (w32-send-sys-command 61488)))
 
 (add-hook 'window-setup-hook 'maximize-frame t)
+
+;; keep buffers open when leaving an emacs client
+(setq server-kill-new-buffers nil)
+
+;; scroll three lines at a time (less "jumpy" than defaults)
+(setq mouse-wheel-scroll-amount '(3 ((shift) . 3)))
+(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+(setq scroll-step 1) ;; keyboard scroll one line at a time
+
+;; show-server-buffers function
+
+;; Shouldn't really be necessary because of (setq server-kill-new-buffers nil).
+;; But it's still nice to have in case emacs thinks there's a client buffer
+;; open and shows a dialog box stating "Emacs still has sessions open"
+;; when trying to exit emacs.
+
+(defun show-server-buffers ()
+  (interactive)
+  (let ((server-buffers)
+        (original-buffer (current-buffer)))
+    (dolist (buf (buffer-list))
+      (switch-to-buffer buf)
+      (when (and server-buffer-clients (buffer-live-p buf))
+        (add-to-list 'server-buffers buf)))
+    (switch-to-buffer original-buffer)
+    (message "server-buffers: %s" server-buffers)))
+
+;;;;;;;;;;;;;;;;;;
+;;;; Packages ;;;;
+;;;;;;;;;;;;;;;;;;
+
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/"))
+(package-initialize)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (cobol-mode php-mode fsharp-mode haskell-mode purescript-mode typescript-mode htmlize idris-mode csharp-mode))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+(server-start)
 
